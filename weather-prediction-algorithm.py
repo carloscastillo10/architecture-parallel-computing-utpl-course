@@ -21,9 +21,20 @@ def get_data():
     return data
 
 def process_data(data):
+
+    # Delete no correlational variables
     data = data.drop([
         'Date', 'index', 'Longitude', 'Latitude', 'Elevation', 'Solar'
     ], axis = 1)
+    data = data.dropna() # Delete empty values
+    data = set_column_type_to_float(data) # Set column type to numeric
+
+    return data
+
+def set_column_type_to_float(data):
+    columns = data.keys()
+    for column in columns:
+        data[column] = data[column].astype('float')
     
     return data
 
