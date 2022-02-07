@@ -1,3 +1,4 @@
+from mpi4py import MPI
 from sklearn import datasets, linear_model
 from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
@@ -7,11 +8,19 @@ import pandas as pd
 import time
 
 def predict_weather():
+    
+    mpi_init = MPI.Is_initialized()
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+    
     data = get_data()
     data = process_data(data)
     x_train, y_train, x_test, y_test = get_data_train_test(data)
     linear_regression = train_model(x_train, y_train)
     prediction = pd.DataFrame(linear_regression.predict(x_test))
+    
+    MPI.Finalize()
 
 def get_data():
     files = os.listdir('weather-data/')
