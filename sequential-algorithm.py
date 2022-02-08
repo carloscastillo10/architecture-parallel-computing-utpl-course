@@ -1,4 +1,3 @@
-from mpi4py import MPI
 from sklearn import datasets, linear_model
 from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
@@ -17,21 +16,13 @@ def predict_weather():
     
 
 def get_data():
-    comm = MPI.COMM_WORLD
-    size = comm.Get_size()
-    rank = comm.Get_rank()
-    if rank == 0:
-        start = time.time()
-        files = os.listdir('weather-data/')
-        data_frames = [pd.read_csv('weather-data/' + filename) for filename in files if not filename.startswith(".gitkeep")]
-        data = pd.concat(data_frames).reset_index()
-        
-        end = time.time()
-        print("Tiempo de ejecución get_data: " + str(end - start))
-        return data
+    files = os.listdir('weather-data/')
+    data_frames = [pd.read_csv('weather-data/' + filename) for filename in files if not filename.startswith(".gitkeep")]
+    data = pd.concat(data_frames).reset_index()
+
+    return data
 
 def process_data(data):
-    start = time.time()
 
     # Delete no correlational variables
     data = data.drop([
@@ -40,25 +31,17 @@ def process_data(data):
     data = data.dropna() # Delete empty values
     data = set_column_type_to_float(data) # Set column type to numeric
 
-    end = time.time()
-    print("Tiempo de ejecución process_data: " + str(end - start))
-    
     return data
 
 def set_column_type_to_float(data):
-    start = time.time()
     
     columns = data.keys()
     for column in columns:
         data[column] = data[column].astype('float')
-    
-    end = time.time()
-    print("Tiempo de ejecución set_column_type_to_float: " + str(end - start))
-    
+        
     return data
 
 def get_data_train_test(data):
-    start = time.time()
     
     data_train, data_test = train_test_split(data, test_size = 0.3, random_state = 0)
     x_train = data_train[['Max Temperature', 'Precipitation', 'Wind', 'Relative Humidity']] # Independent variables
@@ -66,20 +49,13 @@ def get_data_train_test(data):
     x_test = data_test[['Max Temperature', 'Precipitation', 'Wind', 'Relative Humidity']]
     y_test = data_test[['Min Temperature']]
     
-    end = time.time()
-    print("Tiempo de ejecución get_data_train_test: " + str(end - start))
-    
     return x_train, y_train, x_test, y_test
 
 def train_model(x_train, y_train):
-    start = time.time()
     
     linear_regression = linear_model.LinearRegression()
     linear_regression.fit(x_train, y_train)
-    
-    end = time.time()
-    print("Tiempo de ejecución train_model: " + str(end - start))
-    
+        
     return linear_regression
 
 if __name__ == '__main__':
@@ -87,4 +63,4 @@ if __name__ == '__main__':
     predict_weather()
     end = time.time()
 
-    print("Tiempo de ejecución total: " + str(end - start))
+    print("Tiempo de ejecución del algoritmo secuencial: " + str(end - start))
